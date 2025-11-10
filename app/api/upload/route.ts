@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth/server";
-import { writeFile, mkdir } from "fs/promises";
-import { join } from "path";
-import { existsSync } from "fs";
+import cloudinary from "@/lib/cloudinary";
 
 export async function POST(request: NextRequest) {
   try {
@@ -44,49 +42,44 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Generate unique file path based on type
-    const timestamp = Date.now();
-    const randomString = Math.random().toString(36).substring(2, 15);
-    const fileExtension = file.name.split(".").pop();
-    const fileName = `${type}_${user.id}_${timestamp}_${randomString}.${fileExtension}`;
-    
-    // Determine upload directory based on type
-    let subDir = "general";
-    if (type === "service-request") {
-      subDir = "service-requests";
-    } else if (type === "post") {
-      subDir = "posts";
-    } else if (type === "amenity") {
-      subDir = "amenities";
-    } else if (type === "apartment") {
-      subDir = "apartments";
-    }
-
-    // Create uploads directory if it doesn't exist
-    const uploadsDir = join(process.cwd(), "public", "uploads", subDir);
-    if (!existsSync(uploadsDir)) {
-      await mkdir(uploadsDir, { recursive: true });
-    }
-
-    const filePath = join(uploadsDir, fileName);
-
-    // Convert file to Buffer
+    // Convert file to base64
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
+    const base64 = `data:${file.type};base64,${buffer.toString('base64')}`;
 
-    // Write file to disk
-    await writeFile(filePath, buffer);
+    // Determine folder based on type
+    let folder = "stayease/general";
+    if (type === "service-request") {
+      folder = "stayease/service-requests";
+    } else if (type === "post") {
+      folder = "stayease/posts";
+    } else if (type === "amenity") {
+      folder = "stayease/amenities";
+    } else if (type === "apartment") {
+      folder = "stayease/apartments";
+    } else if (type === "avatar") {
+      folder = "stayease/avatars";
+    }
 
-    // Generate public URL
-    const imageUrl = `/uploads/${subDir}/${fileName}`;
+    // Upload to Cloudinary
+    const result = await cloudinary.uploader.upload(base64, {
+      folder: folder,
+      resource_type: "auto",
+      transformation: [
+        { width: 1200, height: 1200, crop: "limit" }, // Giới hạn kích thước
+        { quality: "auto" }, // Tự động tối ưu chất lượng
+        { fetch_format: "auto" }, // Tự động chọn format tốt nhất
+      ],
+    });
 
     return NextResponse.json({
       success: true,
-      url: imageUrl,
-      image_url: imageUrl,
-      file_name: fileName,
-      file_size: file.size,
-      file_type: file.type,
+      url: result.secure_url,
+      image_url: result.secure_url,
+      public_id: result.public_id,
+      file_name: result.original_filename,
+      file_size: result.bytes,
+      file_type: result.format,
     });
 
   } catch (error) {
@@ -94,6 +87,45 @@ export async function POST(request: NextRequest) {
     
     return NextResponse.json(
       { error: "Lỗi server khi tải ảnh lên" },
+      { status: 500 }
+    );
+  }
+}
+
+// DELETE endpoint to remove images from Cloudinary
+export async function DELETE(request: NextRequest) {
+  try {
+    const user = await getCurrentUser();
+    
+    if (!user) {
+      return NextResponse.json(
+        { error: "Người dùng chưa đăng nhập" },
+        { status: 401 }
+      );
+    }
+
+    const { publicId } = await request.json();
+
+    if (!publicId) {
+      return NextResponse.json(
+        { error: "Không có public ID" },
+        { status: 400 }
+      );
+    }
+
+    // Delete from Cloudinary
+    await cloudinary.uploader.destroy(publicId);
+
+    return NextResponse.json({
+      success: true,
+      message: "Đã xóa ảnh thành công"
+    });
+
+  } catch (error) {
+    console.error("Error deleting file:", error);
+    
+    return NextResponse.json(
+      { error: "Lỗi server khi xóa ảnh" },
       { status: 500 }
     );
   }

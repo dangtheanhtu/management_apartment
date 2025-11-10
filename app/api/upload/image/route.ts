@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getCurrentUser } from "@/lib/auth/server"
-import { writeFile, mkdir } from "fs/promises"
-import { join } from "path"
-import { existsSync } from "fs"
+import cloudinary from "@/lib/cloudinary"
 
 export async function POST(request: NextRequest) {
   try {
@@ -50,45 +48,35 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    console.log("File validation passed, uploading to local storage")
+    console.log("File validation passed, uploading to Cloudinary")
 
-    // Generate unique file path
-    const timestamp = Date.now()
-    const randomString = Math.random().toString(36).substring(2, 15)
-    const fileExtension = file.name.split('.').pop()
-    const fileName = `post_${user.id}_${timestamp}_${randomString}.${fileExtension}`
-    
-    // Create uploads directory if it doesn't exist
-    const uploadsDir = join(process.cwd(), 'public', 'uploads', 'posts')
-    if (!existsSync(uploadsDir)) {
-      await mkdir(uploadsDir, { recursive: true })
-    }
-
-    const filePath = join(uploadsDir, fileName)
-
-    console.log("Uploading file to path:", filePath)
-
-    // Convert file to Buffer
+    // Convert file to base64
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
+    const base64 = `data:${file.type};base64,${buffer.toString('base64')}`
 
-    // Write file to disk
-    await writeFile(filePath, buffer)
+    // Upload to Cloudinary
+    const result = await cloudinary.uploader.upload(base64, {
+      folder: "stayease/posts",
+      resource_type: "auto",
+      transformation: [
+        { width: 1200, height: 1200, crop: "limit" },
+        { quality: "auto" },
+        { fetch_format: "auto" },
+      ],
+    })
 
-    console.log("File uploaded successfully")
-
-    // Generate public URL
-    const imageUrl = `/uploads/posts/${fileName}`
-
-    console.log("Image uploaded successfully, URL:", imageUrl)
+    console.log("Image uploaded successfully to Cloudinary, URL:", result.secure_url)
 
     return NextResponse.json({
       success: true,
-      image_url: imageUrl,
-      file_name: fileName,
-      file_path: `/uploads/posts/${fileName}`,
-      file_size: file.size,
-      file_type: file.type
+      image_url: result.secure_url,
+      imageUrl: result.secure_url,
+      public_id: result.public_id,
+      file_name: result.original_filename,
+      file_path: result.secure_url,
+      file_size: result.bytes,
+      file_type: result.format
     })
 
   } catch (error) {

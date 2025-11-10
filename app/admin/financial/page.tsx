@@ -23,6 +23,7 @@ import type { RevenueSummary, InvoiceStats } from "@/lib/types/payment"
 export default function AdminFinancialPage() {
   const [revenueSummary, setRevenueSummary] = useState<RevenueSummary | null>(null)
   const [invoiceStats, setInvoiceStats] = useState<InvoiceStats | null>(null)
+  const [recentActivities, setRecentActivities] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [selectedPeriod, setSelectedPeriod] = useState('30')
@@ -37,9 +38,10 @@ export default function AdminFinancialPage() {
       const endDate = new Date().toISOString().split('T')[0]
       const startDate = new Date(Date.now() - parseInt(selectedPeriod) * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
 
-      const [revenueResponse, statsResponse] = await Promise.all([
+      const [revenueResponse, statsResponse, activitiesResponse] = await Promise.all([
         fetch(`/api/admin/financial/revenue?start_date=${startDate}&end_date=${endDate}`),
-        fetch('/api/admin/financial/stats')
+        fetch('/api/admin/financial/stats'),
+        fetch('/api/admin/financial/activities')
       ])
 
       if (revenueResponse.ok) {
@@ -50,6 +52,11 @@ export default function AdminFinancialPage() {
       if (statsResponse.ok) {
         const statsData = await statsResponse.json()
         setInvoiceStats(statsData)
+      }
+
+      if (activitiesResponse.ok) {
+        const activitiesData = await activitiesResponse.json()
+        setRecentActivities(activitiesData.activities || [])
       }
     } catch (error) {
       console.error("Error fetching financial data:", error)
@@ -73,7 +80,7 @@ export default function AdminFinancialPage() {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Bảng điều khiển Tài chính</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Bảng Tài chính</h1>
           <p className="text-muted-foreground">Tổng quan về tình hình tài chính của hệ thống</p>
         </div>
         <div className="flex items-center justify-center py-8">
@@ -87,7 +94,7 @@ export default function AdminFinancialPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Bảng điều khiển Tài chính</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Bảng Tài chính</h1>
           <p className="text-muted-foreground">Tổng quan về tình hình tài chính của hệ thống</p>
         </div>
         
@@ -317,38 +324,48 @@ export default function AdminFinancialPage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
-              <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                <DollarSign className="w-4 h-4 text-green-600" />
-              </div>
-              <div className="flex-1">
-                <p className="font-medium">Thanh toán thành công</p>
-                <p className="text-sm text-muted-foreground">Tiền thuê căn hộ A101 - 1,200,000 VNĐ</p>
-              </div>
-              <span className="text-xs text-muted-foreground">2 giờ trước</span>
-            </div>
+            {recentActivities.length > 0 ? (
+              recentActivities.map((activity) => {
+                const colorClasses = {
+                  green: { bg: 'bg-green-50', icon: 'bg-green-100', text: 'text-green-600' },
+                  blue: { bg: 'bg-blue-50', icon: 'bg-blue-100', text: 'text-blue-600' },
+                  yellow: { bg: 'bg-yellow-50', icon: 'bg-yellow-100', text: 'text-yellow-600' },
+                  red: { bg: 'bg-red-50', icon: 'bg-red-100', text: 'text-red-600' }
+                }
+                const colors = colorClasses[activity.color as keyof typeof colorClasses] || colorClasses.blue
+                
+                const IconComponent = activity.icon === 'dollar' ? DollarSign :
+                                     activity.icon === 'receipt' ? Receipt :
+                                     activity.icon === 'calendar' ? Calendar :
+                                     Receipt
 
-            <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
-              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                <Receipt className="w-4 h-4 text-blue-600" />
-              </div>
-              <div className="flex-1">
-                <p className="font-medium">Hóa đơn mới</p>
-                <p className="text-sm text-muted-foreground">Tiền điện căn hộ A201 - 350,000 VNĐ</p>
-              </div>
-              <span className="text-xs text-muted-foreground">4 giờ trước</span>
-            </div>
+                const getTimeAgo = (timestamp: string) => {
+                  const diff = Date.now() - new Date(timestamp).getTime()
+                  const hours = Math.floor(diff / (1000 * 60 * 60))
+                  if (hours < 1) return 'Vừa xong'
+                  if (hours < 24) return `${hours} giờ trước`
+                  const days = Math.floor(hours / 24)
+                  return `${days} ngày trước`
+                }
 
-            <div className="flex items-center gap-3 p-3 bg-yellow-50 rounded-lg">
-              <div className="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
-                <Calendar className="w-4 h-4 text-yellow-600" />
+                return (
+                  <div key={activity.id} className={`flex items-center gap-3 p-3 ${colors.bg} rounded-lg`}>
+                    <div className={`w-8 h-8 ${colors.icon} rounded-full flex items-center justify-center`}>
+                      <IconComponent className={`w-4 h-4 ${colors.text}`} />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-medium">{activity.title}</p>
+                      <p className="text-sm text-muted-foreground">{activity.description}</p>
+                    </div>
+                    <span className="text-xs text-muted-foreground">{getTimeAgo(activity.timestamp)}</span>
+                  </div>
+                )
+              })
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                <p>Chưa có hoạt động nào gần đây</p>
               </div>
-              <div className="flex-1">
-                <p className="font-medium">Hóa đơn sắp đến hạn</p>
-                <p className="text-sm text-muted-foreground">3 hóa đơn sẽ hết hạn trong 2 ngày tới</p>
-              </div>
-              <span className="text-xs text-muted-foreground">6 giờ trước</span>
-            </div>
+            )}
           </div>
         </CardContent>
       </Card>

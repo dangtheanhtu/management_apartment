@@ -40,8 +40,8 @@ export default function AboutSection({ stats }: AboutSectionProps) {
           <div className="space-y-8">
             <div className="space-y-4">
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 rounded-full">
-                <Sparkles className="h-4 w-4 text-blue-600" />
-                <span className="text-sm font-medium text-blue-600">Về chúng tôi</span>
+                <Sparkles className="h-4 w-4 text-primary" />
+                <span className="text-sm font-medium text-primary">Về chúng tôi</span>
               </div>
               <h2 className="text-4xl md:text-5xl font-bold text-slate-900">
                 StayEase Apartment
@@ -55,7 +55,7 @@ export default function AboutSection({ stats }: AboutSectionProps) {
             <div className="space-y-6">
               <div className="flex items-start gap-4">
                 <div className="p-3 bg-blue-100 rounded-xl">
-                  <Building2 className="h-6 w-6 text-blue-600" />
+                  <Building2 className="h-6 w-6 text-primary" />
                 </div>
                 <div>
                   <h3 className="text-lg font-semibold text-slate-900 mb-2">
@@ -84,8 +84,8 @@ export default function AboutSection({ stats }: AboutSectionProps) {
               </div>
 
               <div className="flex items-start gap-4">
-                <div className="p-3 bg-purple-100 rounded-xl">
-                  <Heart className="h-6 w-6 text-purple-600" />
+                <div className="p-3 bg-orange-100 rounded-xl">
+                  <Heart className="h-6 w-6 text-primary" />
                 </div>
                 <div>
                   <h3 className="text-lg font-semibold text-slate-900 mb-2">
@@ -119,7 +119,7 @@ export default function AboutSection({ stats }: AboutSectionProps) {
           <div className="grid grid-cols-2 gap-6">
             <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow">
               <div className="p-4 bg-blue-100 rounded-xl w-fit mb-4">
-                <Building2 className="h-8 w-8 text-blue-600" />
+                <Building2 className="h-8 w-8 text-primary" />
               </div>
               <div className="text-4xl font-bold text-slate-900 mb-2">
                 {displayStats.totalApartments}+
@@ -138,8 +138,8 @@ export default function AboutSection({ stats }: AboutSectionProps) {
             </div>
 
             <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow">
-              <div className="p-4 bg-purple-100 rounded-xl w-fit mb-4">
-                <Star className="h-8 w-8 text-purple-600" />
+              <div className="p-4 bg-orange-100 rounded-xl w-fit mb-4">
+                <Star className="h-8 w-8 text-primary" />
               </div>
               <div className="text-4xl font-bold text-slate-900 mb-2">
                 {displayStats.totalAmenities}+

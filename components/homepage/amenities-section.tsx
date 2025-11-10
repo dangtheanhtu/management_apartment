@@ -90,9 +90,9 @@ export default function AmenitiesSection({ amenities }: AmenitiesSectionProps) {
       <div className="container mx-auto px-6">
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-purple-50 rounded-full">
-            <Sparkles className="h-4 w-4 text-purple-600" />
-            <span className="text-sm font-medium text-purple-600">Tiện ích & Lifestyle</span>
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-orange-50 rounded-full">
+            <Sparkles className="h-4 w-4 text-primary" />
+            <span className="text-sm font-medium text-primary">Tiện ích & Lifestyle</span>
           </div>
           <h2 className="text-4xl md:text-5xl font-bold text-slate-900">
             Trải nghiệm cuộc sống đẳng cấp
@@ -123,7 +123,7 @@ export default function AmenitiesSection({ amenities }: AmenitiesSectionProps) {
                       className="object-cover group-hover:scale-110 transition-transform duration-500"
                     />
                   ) : (
-                    <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50">
+                    <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-orange-50 to-red-50">
                       <Icon className="h-20 w-20 text-slate-300" />
                     </div>
                   )}
@@ -137,7 +137,7 @@ export default function AmenitiesSection({ amenities }: AmenitiesSectionProps) {
                 <CardHeader className="space-y-3">
                   <div className="flex items-start justify-between gap-2">
                     <CardTitle className="text-xl font-bold text-slate-900 flex items-center gap-2">
-                      <Icon className="h-5 w-5 text-blue-600" />
+                      <Icon className="h-5 w-5 text-primary" />
                       {amenity.name}
                     </CardTitle>
                   </div>

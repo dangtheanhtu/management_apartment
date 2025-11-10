@@ -39,9 +39,9 @@ export async function GET(request: NextRequest) {
     // Transform to match frontend expectations
     const revenueSummary = {
       total_revenue: result.revenue?.total || 0,
-      rent_revenue: 0, // TODO: Calculate from invoice types
-      utility_revenue: 0, // TODO: Calculate from invoice types
-      service_revenue: 0, // TODO: Calculate from invoice types
+      rent_revenue: result.revenue?.rentRevenue || 0,
+      utility_revenue: result.revenue?.utilityRevenue || 0,
+      service_revenue: result.revenue?.serviceRevenue || 0,
       monthly_revenue: result.revenue?.monthly || []
     }
 

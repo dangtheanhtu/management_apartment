@@ -56,6 +56,9 @@ export default withAuth(
       }
 
       // Dashboard routing based on role
+      // Keep users on dashboard page instead of redirecting
+      // Removed automatic redirects - users can navigate from dashboard
+      /*
       if (pathname === "/dashboard" && token) {
         const url = req.nextUrl.clone()
         
@@ -74,6 +77,7 @@ export default withAuth(
           return NextResponse.redirect(url)
         }
       }
+      */
     }
 
     return NextResponse.next()

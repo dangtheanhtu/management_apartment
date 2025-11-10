@@ -117,7 +117,7 @@ export default function CommunityNewsSection({ posts }: CommunityNewsSectionProp
               </div>
 
               <CardHeader className="space-y-3">
-                <CardTitle className="text-xl font-bold text-slate-900 line-clamp-2 group-hover:text-blue-600 transition-colors">
+                <CardTitle className="text-xl font-bold text-slate-900 line-clamp-2 group-hover:text-primary transition-colors">
                   {post.content.replace(/<[^>]*>/g, '').substring(0, 80)}
                   {post.content.length > 80 && '...'}
                 </CardTitle>

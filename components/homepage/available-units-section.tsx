@@ -62,9 +62,9 @@ export default function AvailableUnitsSection({ apartments }: AvailableUnitsSect
       <div className="container mx-auto px-6">
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 rounded-full">
-            <Sparkles className="h-4 w-4 text-blue-600" />
-            <span className="text-sm font-medium text-blue-600">Căn hộ còn trống</span>
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-orange-50 rounded-full">
+            <Sparkles className="h-4 w-4 text-primary" />
+            <span className="text-sm font-medium text-primary">Căn hộ còn trống</span>
           </div>
           <h2 className="text-4xl md:text-5xl font-bold text-slate-900">
             Khám phá không gian sống lý tưởng
@@ -153,7 +153,7 @@ export default function AvailableUnitsSection({ apartments }: AvailableUnitsSect
                 {/* Price */}
                 <div className="pt-4 border-t">
                   <div className="text-sm text-slate-500 mb-1">Giá thuê</div>
-                  <div className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  <div className="text-3xl font-bold text-gradient">
                     {new Intl.NumberFormat("vi-VN", {
                       style: "currency",
                       currency: "VND",
@@ -165,7 +165,7 @@ export default function AvailableUnitsSection({ apartments }: AvailableUnitsSect
                 {/* CTA Button */}
                 <Button 
                   asChild
-                  className="w-full group/btn bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                  className="w-full group/btn bg-primary hover:bg-primary/90"
                   size="lg"
                 >
                   <Link href={`/search?id=${apartment.id}`}>

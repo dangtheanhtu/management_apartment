@@ -20,10 +20,10 @@ export default function Navigation({ session }: NavigationProps) {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 group">
-            <div className="p-2 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg group-hover:scale-105 transition-transform">
+            <div className="p-2 bg-gradient-to-br from-primary to-accent rounded-lg group-hover:scale-105 transition-transform">
               <Building2 className="h-5 w-5 text-white" />
             </div>
-            <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            <span className="text-xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
               StayEase
             </span>
           </Link>
@@ -67,7 +67,7 @@ export default function Navigation({ session }: NavigationProps) {
                 </Button>
                 <Button
                   asChild
-                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                  className="bg-primary hover:bg-primary/90"
                 >
                   <Link href="/register">Đăng ký</Link>
                 </Button>
@@ -130,7 +130,7 @@ export default function Navigation({ session }: NavigationProps) {
                   </Button>
                   <Button
                     asChild
-                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                    className="w-full bg-primary hover:bg-primary/90"
                   >
                     <Link href="/register" onClick={() => setMobileMenuOpen(false)}>
                       Đăng ký

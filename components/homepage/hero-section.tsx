@@ -29,8 +29,8 @@ export default function HeroSection({ session }: HeroSectionProps) {
       <div className="absolute inset-0 bg-grid-slate-200/50 [mask-image:radial-gradient(white,transparent_85%)]" />
       
       {/* Gradient Orbs */}
-      <div className="absolute top-20 right-20 w-96 h-96 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-full blur-3xl" />
-      <div className="absolute bottom-20 left-20 w-96 h-96 bg-gradient-to-br from-emerald-400/20 to-cyan-400/20 rounded-full blur-3xl" />
+      <div className="absolute top-20 right-20 w-96 h-96 bg-gradient-to-br from-primary/20 to-accent/20 rounded-full blur-3xl" />
+      <div className="absolute bottom-20 left-20 w-96 h-96 bg-gradient-to-br from-accent/20 to-primary/20 rounded-full blur-3xl" />
 
       <div className="container relative mx-auto px-6 py-20">
         <div className="max-w-4xl mx-auto text-center space-y-8">
@@ -44,11 +44,11 @@ export default function HeroSection({ session }: HeroSectionProps) {
 
           {/* Main Heading */}
           <h1 className="text-5xl md:text-7xl font-bold tracking-tight">
-            <span className="bg-gradient-to-r from-slate-900 via-blue-800 to-slate-900 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 bg-clip-text text-transparent">
               Cuộc sống cao cấp
             </span>
             <br />
-            <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            <span className="text-gradient">
               Bắt đầu từ đây
             </span>
           </h1>
@@ -62,7 +62,7 @@ export default function HeroSection({ session }: HeroSectionProps) {
           {/* Search Bar */}
           <form onSubmit={handleSearch} className="max-w-2xl mx-auto">
             <div className="relative group">
-              <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl blur opacity-30 group-hover:opacity-50 transition duration-300" />
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-primary to-accent rounded-2xl blur opacity-30 group-hover:opacity-50 transition duration-300" />
               <div className="relative flex items-center bg-white rounded-2xl shadow-2xl overflow-hidden">
                 <Search className="absolute left-6 h-5 w-5 text-slate-400" />
                 <Input
@@ -75,7 +75,7 @@ export default function HeroSection({ session }: HeroSectionProps) {
                 <Button
                   type="submit"
                   size="lg"
-                  className="m-2 px-8 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                  className="m-2 px-8 bg-primary hover:bg-primary/90"
                 >
                   Tìm kiếm
                   <ArrowRight className="ml-2 h-5 w-5" />
@@ -91,7 +91,7 @@ export default function HeroSection({ session }: HeroSectionProps) {
                 <Button
                   asChild
                   size="lg"
-                  className="px-8 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg"
+                  className="px-8 bg-primary hover:bg-primary/90 shadow-lg"
                 >
                   <Link href="/dashboard">
                     <Building2 className="mr-2 h-5 w-5" />
@@ -112,7 +112,7 @@ export default function HeroSection({ session }: HeroSectionProps) {
                 <Button
                   asChild
                   size="lg"
-                  className="px-8 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg"
+                  className="px-8 bg-primary hover:bg-primary/90 shadow-lg"
                 >
                   <Link href="/register">
                     Đăng ký ngay

@@ -12,6 +12,7 @@ export async function getDashboardStats() {
       totalUsers,
       totalApartments,
       occupiedApartments,
+      activeResidents,
       pendingRequests,
       recentInvoices,
       recentRequests
@@ -19,6 +20,7 @@ export async function getDashboardStats() {
       User.countDocuments({ role: { $in: ['resident', 'staff'] } }),
       Apartment.countDocuments(),
       Apartment.countDocuments({ status: 'occupied' }),
+      User.countDocuments({ role: 'resident' }),
       ServiceRequest.countDocuments({ status: 'pending' }),
       Invoice.find()
         .sort({ createdAt: -1 })
@@ -43,6 +45,7 @@ export async function getDashboardStats() {
       totalUsers,
       totalApartments,
       occupiedApartments,
+      activeResidents,
       occupancyRate,
       pendingRequests,
       recentInvoices: recentInvoices.map((invoice: any) => ({

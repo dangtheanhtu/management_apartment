@@ -1,5 +1,5 @@
-export type InvoiceType = 'RENT' | 'ELECTRICITY' | 'WATER' | 'INTERNET' | 'SERVICE' | 'REPAIR'
-export type InvoiceStatus = 'PENDING' | 'PAID' | 'OVERDUE'
+export type InvoiceType = 'RENT' | 'ELECTRICITY' | 'WATER' | 'INTERNET' | 'SERVICE' | 'REPAIR' | 'rent' | 'utilities' | 'maintenance' | 'parking' | 'other'
+export type InvoiceStatus = 'PENDING' | 'PAID' | 'OVERDUE' | 'pending' | 'paid' | 'overdue' | 'cancelled'
 export type PaymentGateway = 'VNPAY' | 'MOMO' | 'BANK_TRANSFER'
 export type TransactionStatus = 'SUCCESS' | 'FAILED' | 'PENDING'
 
@@ -15,6 +15,11 @@ export interface Invoice {
   description?: string | null
   created_at: string
   updated_at: string
+  // Populated fields from API
+  user_name?: string
+  user_email?: string
+  apartment_number?: string
+  building?: string
 }
 
 export interface Transaction {

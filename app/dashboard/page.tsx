@@ -96,8 +96,8 @@ export default async function DashboardPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                  <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                    <Receipt className="w-4 h-4 text-purple-600" />
+                  <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
+                    <Receipt className="w-4 h-4 text-primary" />
                   </div>
                   <div className="flex-1">
                     <p className="font-medium">Xem hóa đơn</p>
@@ -123,12 +123,12 @@ export default async function DashboardPage() {
     return (
       <div className="space-y-8">
         {/* Welcome Section */}
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-8 text-white">
+        <div className="bg-gradient-to-r from-primary to-accent rounded-2xl p-8 text-white">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-4xl font-bold mb-2">Chào mừng trở lại!</h1>
-              <p className="text-blue-100 text-lg">{user.fullName}</p>
-              <p className="text-blue-200 mt-2">Quản lý căn hộ một cách hiệu quả và thông minh</p>
+              <p className="text-orange-100 text-lg">{user.fullName}</p>
+              <p className="text-orange-200 mt-2">Quản lý căn hộ một cách hiệu quả và thông minh</p>
             </div>
             <div className="hidden md:block">
               <div className="w-24 h-24 bg-white/20 rounded-full flex items-center justify-center">
@@ -214,36 +214,46 @@ export default async function DashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                    <Users className="w-4 h-4 text-green-600" />
+                {stats.recentInvoices && stats.recentInvoices.length > 0 ? (
+                  <>
+                    {stats.recentInvoices.slice(0, 2).map((invoice: any) => (
+                      <div key={invoice.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                        <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                          <Receipt className="w-4 h-4 text-green-600" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-medium">Hóa đơn mới: {invoice.invoiceNumber}</p>
+                          <p className="text-sm text-gray-500">
+                            {invoice.user?.name || 'N/A'} - {invoice.apartment?.number || 'N/A'} - {invoice.amount?.toLocaleString()} VNĐ
+                          </p>
+                        </div>
+                        <span className="text-xs text-gray-400">
+                          {invoice.dueDate ? new Date(invoice.dueDate).toLocaleDateString('vi-VN') : 'N/A'}
+                        </span>
+                      </div>
+                    ))}
+                    {stats.recentRequests && stats.recentRequests.slice(0, 2).map((request: any) => (
+                      <div key={request.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                        <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
+                          <Wrench className="w-4 h-4 text-orange-600" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-medium">Yêu cầu bảo trì: {request.title}</p>
+                          <p className="text-sm text-gray-500">
+                            {request.user?.name || 'N/A'} - {request.apartment?.number || 'N/A'}
+                          </p>
+                        </div>
+                        <span className="text-xs text-gray-400">
+                          {request.createdAt ? new Date(request.createdAt).toLocaleDateString('vi-VN') : 'N/A'}
+                        </span>
+                      </div>
+                    ))}
+                  </>
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <p>Chưa có hoạt động nào gần đây</p>
                   </div>
-                  <div className="flex-1">
-                    <p className="font-medium">Người dùng mới đăng ký</p>
-                    <p className="text-sm text-gray-500">John Doe đã tạo tài khoản</p>
-                  </div>
-                  <span className="text-xs text-gray-400">2 giờ trước</span>
-                </div>
-                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                    <Building className="w-4 h-4 text-blue-600" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-medium">Căn hộ mới được thêm</p>
-                    <p className="text-sm text-gray-500">Căn hộ A301 đã được tạo</p>
-                  </div>
-                  <span className="text-xs text-gray-400">4 giờ trước</span>
-                </div>
-                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                  <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                    <UserCheck className="w-4 h-4 text-purple-600" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-medium">Cư dân được phân công</p>
-                    <p className="text-sm text-gray-500">Jane Smith đã được phân căn hộ B102</p>
-                  </div>
-                  <span className="text-xs text-gray-400">6 giờ trước</span>
-                </div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -281,16 +291,16 @@ export default async function DashboardPage() {
               icon={Building}
             />
             <StatsCard
-              title="Ngày chuyển vào"
-              value={stats.moveInDate ? new Date(stats.moveInDate).toLocaleDateString() : "N/A"}
-              description="Bắt đầu sống tại đây"
-              icon={Calendar}
+              title="Hóa đơn chưa thanh toán"
+              value={stats?.pendingInvoices || 0}
+              description="Cần thanh toán"
+              icon={Receipt}
             />
             <StatsCard
-              title="Số ngày ở"
-              value={stats.daysLiving}
-              description="Tổng số ngày trong căn hộ"
-              icon={Clock}
+              title="Yêu cầu bảo trì"
+              value={stats?.totalRequests || 0}
+              description="Tổng số yêu cầu"
+              icon={Wrench}
             />
           </div>
 
@@ -320,7 +330,7 @@ export default async function DashboardPage() {
                   </div>
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">Diện tích (m²)</p>
-                    <p className="text-2xl font-bold">{residentData.apartment.square_feet}</p>
+                    <p className="text-2xl font-bold">{residentData.apartment.area}</p>
                   </div>
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">Trạng thái</p>

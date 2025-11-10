@@ -11,7 +11,7 @@ interface CtaSectionProps {
 
 export default function CtaSection({ session }: CtaSectionProps) {
   return (
-    <section className="py-24 bg-gradient-to-br from-blue-600 via-purple-600 to-blue-700 relative overflow-hidden">
+    <section className="py-24 bg-gradient-to-br from-primary via-accent to-primary relative overflow-hidden">
       {/* Background Pattern */}
       <div className="absolute inset-0 bg-grid-white/10 [mask-image:radial-gradient(white,transparent_70%)]" />
       
@@ -34,7 +34,7 @@ export default function CtaSection({ session }: CtaSectionProps) {
               <Button 
                 asChild
                 size="lg" 
-                className="px-8 bg-white text-blue-600 hover:bg-blue-50"
+                className="px-8 bg-white text-primary hover:bg-orange-50"
               >
                 <Link href="/dashboard">
                   Vào Dashboard
@@ -67,7 +67,7 @@ export default function CtaSection({ session }: CtaSectionProps) {
               <Button 
                 asChild
                 size="lg" 
-                className="px-8 bg-white text-blue-600 hover:bg-blue-50"
+                className="px-8 bg-white text-primary hover:bg-orange-50"
               >
                 <Link href="/register">
                   Đăng ký ngay

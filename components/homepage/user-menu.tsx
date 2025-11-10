@@ -57,7 +57,7 @@ export default function UserMenu({ session }: UserMenuProps) {
           {session.user?.avatarUrl && (
             <AvatarImage src={session.user.avatarUrl} alt={session.user?.name || ""} />
           )}
-          <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white font-semibold">
+          <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-white font-semibold">
             {getInitials(session.user?.name)}
           </AvatarFallback>
         </Avatar>

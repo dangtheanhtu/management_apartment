@@ -57,6 +57,9 @@ export async function getCurrentUserInvoices(filters?: {
 
     await connectDB()
 
+    // Update overdue invoices first
+    await updateOverdueInvoices()
+
     const page = filters?.page || 1
     const limit = filters?.limit || 50
     const skip = (page - 1) * limit
@@ -153,6 +156,33 @@ export async function getCurrentUserTransactions(filters?: {
   }
 }
 
+export async function updateOverdueInvoices() {
+  try {
+    await connectDB()
+
+    // Update all pending invoices where due date has passed
+    const result = await Invoice.updateMany(
+      {
+        status: 'pending',
+        dueDate: { $lt: new Date() }
+      },
+      {
+        $set: { status: 'overdue' }
+      }
+    )
+
+    console.log(`Updated ${result.modifiedCount} invoices to overdue status`)
+
+    return {
+      success: true,
+      updated: result.modifiedCount
+    }
+  } catch (error) {
+    console.error("Error updating overdue invoices:", error)
+    return { error: "Lỗi server khi cập nhật hóa đơn quá hạn" }
+  }
+}
+
 export async function getInvoiceStats() {
   try {
     const user = await getCurrentUser()
@@ -161,6 +191,9 @@ export async function getInvoiceStats() {
     }
 
     await connectDB()
+
+    // Update overdue invoices first
+    await updateOverdueInvoices()
 
     const totalInvoices = await Invoice.countDocuments()
     const paidInvoices = await Invoice.countDocuments({ status: 'paid' })
@@ -218,6 +251,9 @@ export async function getAllInvoices(filters?: {
 
     await connectDB()
 
+    // Update overdue invoices first
+    await updateOverdueInvoices()
+
     const page = filters?.page || 1
     const limit = filters?.limit || 50
     const skip = (page - 1) * limit
@@ -248,6 +284,7 @@ export async function getAllInvoices(filters?: {
         apartment_id: invoice.apartmentId?._id.toString(),
         apartment_number: invoice.apartmentId?.apartmentNumber,
         building: invoice.apartmentId?.building,
+        type: invoice.type,
         amount: invoice.amount,
         status: invoice.status,
         due_date: invoice.dueDate?.toISOString(),
@@ -287,10 +324,43 @@ export async function getRevenueSummary(filters?: {
       if (filters.endDate) query.paidDate.$lte = filters.endDate
     }
 
+    // Get total revenue
     const revenue = await Invoice.aggregate([
       { $match: query },
       { $group: { _id: null, total: { $sum: '$amount' } } }
     ])
+
+    // Get revenue by type
+    const revenueByType = await Invoice.aggregate([
+      { $match: query },
+      {
+        $group: {
+          _id: '$type',
+          total: { $sum: '$amount' }
+        }
+      }
+    ])
+
+    // Calculate revenue by category
+    let rentRevenue = 0
+    let utilityRevenue = 0
+    let serviceRevenue = 0
+
+    revenueByType.forEach((item: any) => {
+      switch (item._id) {
+        case 'rent':
+          rentRevenue = item.total
+          break
+        case 'utilities':
+          utilityRevenue = item.total
+          break
+        case 'maintenance':
+        case 'parking':
+        case 'other':
+          serviceRevenue += item.total
+          break
+      }
+    })
 
     const monthlyRevenue = await Invoice.aggregate([
       { $match: query },
@@ -311,6 +381,9 @@ export async function getRevenueSummary(filters?: {
       success: true,
       revenue: {
         total: revenue[0]?.total || 0,
+        rentRevenue,
+        utilityRevenue,
+        serviceRevenue,
         monthly: monthlyRevenue
       }
     }

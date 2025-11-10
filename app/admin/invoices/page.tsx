@@ -20,13 +20,17 @@ import {
   DollarSign,
   FileText,
   Users,
-  Building
+  Building,
+  Search,
+  Filter,
+  ArrowUpDown
 } from "lucide-react"
 import type { Invoice, CreateInvoiceRequest } from "@/lib/types/payment"
 import { getInvoiceTypeDisplayName, getInvoiceStatusDisplayName } from "@/lib/types/payment"
 
 export default function AdminInvoicesPage() {
   const [invoices, setInvoices] = useState<Invoice[]>([])
+  const [filteredInvoices, setFilteredInvoices] = useState<Invoice[]>([])
   const [users, setUsers] = useState<any[]>([])
   const [apartments, setApartments] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -34,6 +38,13 @@ export default function AdminInvoicesPage() {
   const [creating, setCreating] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+
+  // Filter and search state
+  const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [typeFilter, setTypeFilter] = useState<string>('all')
+  const [searchQuery, setSearchQuery] = useState('')
+  const [sortBy, setSortBy] = useState<'date' | 'amount'>('date')
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
 
   // Form state
   const [formData, setFormData] = useState<CreateInvoiceRequest>({
@@ -49,6 +60,45 @@ export default function AdminInvoicesPage() {
     fetchData()
   }, [])
 
+  useEffect(() => {
+    // Apply filters and search
+    let result = [...invoices]
+
+    // Filter by status
+    if (statusFilter !== 'all') {
+      result = result.filter(inv => inv.status?.toLowerCase() === statusFilter)
+    }
+
+    // Filter by type
+    if (typeFilter !== 'all') {
+      result = result.filter(inv => inv.type === typeFilter)
+    }
+
+    // Search by user name, apartment number, or description
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase()
+      result = result.filter(inv => {
+        const userName = getUserName(inv.user_id, inv).toLowerCase()
+        const apartmentNumber = getApartmentNumber(inv.apartment_id, inv).toLowerCase()
+        const description = (inv.description || '').toLowerCase()
+        return userName.includes(query) || apartmentNumber.includes(query) || description.includes(query)
+      })
+    }
+
+    // Sort
+    result.sort((a, b) => {
+      if (sortBy === 'date') {
+        const dateA = new Date(a.due_date).getTime()
+        const dateB = new Date(b.due_date).getTime()
+        return sortOrder === 'asc' ? dateA - dateB : dateB - dateA
+      } else {
+        return sortOrder === 'asc' ? a.amount - b.amount : b.amount - a.amount
+      }
+    })
+
+    setFilteredInvoices(result)
+  }, [invoices, statusFilter, typeFilter, searchQuery, sortBy, sortOrder])
+
   const fetchData = async () => {
     try {
       const [invoicesResponse, usersResponse, apartmentsResponse] = await Promise.all([
@@ -59,8 +109,12 @@ export default function AdminInvoicesPage() {
 
       if (invoicesResponse.ok) {
         const invoicesData = await invoicesResponse.json()
+        console.log('Invoices API Response:', invoicesData)
         // Handle response structure: { success, invoices, pagination }
-        setInvoices(Array.isArray(invoicesData) ? invoicesData : (invoicesData.invoices || []))
+        const invoicesList = Array.isArray(invoicesData) ? invoicesData : (invoicesData.invoices || [])
+        console.log('Invoices List:', invoicesList)
+        console.log('First Invoice:', invoicesList[0])
+        setInvoices(invoicesList)
       }
 
       if (usersResponse.ok) {
@@ -150,19 +204,37 @@ export default function AdminInvoicesPage() {
     }
   }
 
-  const getUserName = (userId: string) => {
+  const getUserName = (userId: string, invoice?: Invoice) => {
+    // First try to get from invoice data
+    if (invoice?.user_name) {
+      return invoice.user_name
+    }
+    // Fallback to users array
     const user = users.find(u => u.id === userId)
-    return user ? user.full_name : 'Unknown User'
+    const name = user ? user.full_name : 'Unknown User'
+    if (name === 'Unknown User') {
+      console.log('Could not find user:', userId, 'in users:', users.map(u => u.id))
+    }
+    return name
   }
 
-  const getApartmentNumber = (apartmentId: string) => {
+  const getApartmentNumber = (apartmentId: string, invoice?: Invoice) => {
+    // First try to get from invoice data
+    if (invoice?.apartment_number) {
+      return invoice.apartment_number
+    }
+    // Fallback to apartments array
     const apartment = apartments.find(a => a.id === apartmentId)
-    return apartment ? apartment.apartment_number : 'Unknown Apartment'
+    const number = apartment ? apartment.apartment_number : 'Unknown Apartment'
+    if (number === 'Unknown Apartment') {
+      console.log('Could not find apartment:', apartmentId, 'in apartments:', apartments.map(a => a.id))
+    }
+    return number
   }
 
-  const pendingInvoices = invoices.filter(inv => inv.status?.toLowerCase() === 'pending')
-  const paidInvoices = invoices.filter(inv => inv.status?.toLowerCase() === 'paid')
-  const overdueInvoices = invoices.filter(inv => inv.status?.toLowerCase() === 'overdue')
+  const pendingInvoices = filteredInvoices.filter(inv => inv.status?.toLowerCase() === 'pending')
+  const paidInvoices = filteredInvoices.filter(inv => inv.status?.toLowerCase() === 'paid')
+  const overdueInvoices = filteredInvoices.filter(inv => inv.status?.toLowerCase() === 'overdue')
 
   const totalPending = pendingInvoices.reduce((sum, inv) => sum + inv.amount, 0)
   const totalPaid = paidInvoices.reduce((sum, inv) => sum + inv.amount, 0)
@@ -367,39 +439,39 @@ export default function AdminInvoicesPage() {
 
       {/* Summary Cards */}
       <div className="grid gap-4 md:grid-cols-3">
-        <Card>
+        <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => setStatusFilter('pending')}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Chờ thanh toán</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
+            <Clock className="h-4 w-4 text-yellow-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{pendingInvoices.length}</div>
+            <div className="text-2xl font-bold text-yellow-600">{pendingInvoices.length}</div>
             <p className="text-xs text-muted-foreground">
               {totalPending.toLocaleString()} VNĐ
             </p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => setStatusFilter('paid')}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Đã thanh toán</CardTitle>
-            <CheckCircle className="h-4 w-4 text-muted-foreground" />
+            <CheckCircle className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{paidInvoices.length}</div>
+            <div className="text-2xl font-bold text-green-600">{paidInvoices.length}</div>
             <p className="text-xs text-muted-foreground">
               {totalPaid.toLocaleString()} VNĐ
             </p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => setStatusFilter('overdue')}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Quá hạn</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-muted-foreground" />
+            <AlertTriangle className="h-4 w-4 text-red-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{overdueInvoices.length}</div>
+            <div className="text-2xl font-bold text-red-600">{overdueInvoices.length}</div>
             <p className="text-xs text-muted-foreground">
               {totalOverdue.toLocaleString()} VNĐ
             </p>
@@ -418,55 +490,154 @@ export default function AdminInvoicesPage() {
       {/* Invoices List */}
       <Card>
         <CardHeader>
-          <CardTitle>Tất cả hóa đơn</CardTitle>
-          <CardDescription>
-            {invoices.length} hóa đơn trong hệ thống
-          </CardDescription>
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <CardTitle>Tất cả hóa đơn</CardTitle>
+              <CardDescription>
+                {filteredInvoices.length} hóa đơn {statusFilter !== 'all' && `(${statusFilter})`}
+              </CardDescription>
+            </div>
+
+            {/* Filters and Search */}
+            <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+              <div className="relative flex-1 md:w-64">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Tìm kiếm cư dân, căn hộ..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-full sm:w-40">
+                  <Filter className="h-4 w-4 mr-2" />
+                  <SelectValue placeholder="Trạng thái" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tất cả trạng thái</SelectItem>
+                  <SelectItem value="pending">Chờ thanh toán</SelectItem>
+                  <SelectItem value="paid">Đã thanh toán</SelectItem>
+                  <SelectItem value="overdue">Quá hạn</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select value={typeFilter} onValueChange={setTypeFilter}>
+                <SelectTrigger className="w-full sm:w-40">
+                  <Receipt className="h-4 w-4 mr-2" />
+                  <SelectValue placeholder="Loại hóa đơn" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tất cả loại</SelectItem>
+                  <SelectItem value="RENT">Tiền thuê</SelectItem>
+                  <SelectItem value="ELECTRICITY">Tiền điện</SelectItem>
+                  <SelectItem value="WATER">Tiền nước</SelectItem>
+                  <SelectItem value="INTERNET">Internet</SelectItem>
+                  <SelectItem value="SERVICE">Dịch vụ</SelectItem>
+                  <SelectItem value="REPAIR">Sửa chữa</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select 
+                value={`${sortBy}-${sortOrder}`} 
+                onValueChange={(value) => {
+                  const [by, order] = value.split('-') as ['date' | 'amount', 'asc' | 'desc']
+                  setSortBy(by)
+                  setSortOrder(order)
+                }}
+              >
+                <SelectTrigger className="w-full sm:w-40">
+                  <ArrowUpDown className="h-4 w-4 mr-2" />
+                  <SelectValue placeholder="Sắp xếp" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="date-desc">Hạn mới nhất</SelectItem>
+                  <SelectItem value="date-asc">Hạn cũ nhất</SelectItem>
+                  <SelectItem value="amount-desc">Số tiền giảm dần</SelectItem>
+                  <SelectItem value="amount-asc">Số tiền tăng dần</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
-          {invoices.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-8">
-              <Receipt className="h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Chưa có hóa đơn</h3>
-              <p className="text-muted-foreground text-center">
-                Tạo hóa đơn đầu tiên để bắt đầu quản lý
+          {filteredInvoices.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12">
+              <Receipt className="h-16 w-16 text-muted-foreground/50 mb-4" />
+              <h3 className="text-lg font-semibold mb-2">
+                {invoices.length === 0 ? 'Chưa có hóa đơn' : 'Không tìm thấy hóa đơn'}
+              </h3>
+              <p className="text-muted-foreground text-center mb-4">
+                {invoices.length === 0 
+                  ? 'Tạo hóa đơn đầu tiên để bắt đầu quản lý'
+                  : 'Thử thay đổi bộ lọc hoặc tìm kiếm khác'
+                }
               </p>
+              {(statusFilter !== 'all' || typeFilter !== 'all' || searchQuery) && (
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setStatusFilter('all')
+                    setTypeFilter('all')
+                    setSearchQuery('')
+                  }}
+                >
+                  Xóa bộ lọc
+                </Button>
+              )}
             </div>
           ) : (
-            <div className="space-y-4">
-              {invoices.map((invoice) => (
-                <Card key={invoice.id}>
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        {getStatusIcon(invoice.status)}
-                        <div>
-                          <p className="font-medium">
-                            {getInvoiceTypeDisplayName(invoice.type)}
-                          </p>
-                          <p className="text-sm text-muted-foreground">
-                            {getUserName(invoice.user_id)} - {getApartmentNumber(invoice.apartment_id)}
-                          </p>
+            <div className="space-y-3">
+              {filteredInvoices.map((invoice) => (
+                <Card key={invoice.id} className="hover:shadow-md transition-shadow border-l-4" style={{
+                  borderLeftColor: 
+                    invoice.status?.toLowerCase() === 'paid' ? '#22c55e' :
+                    invoice.status?.toLowerCase() === 'overdue' ? '#ef4444' :
+                    '#eab308'
+                }}>
+                  <CardContent className="p-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                      <div className="flex items-start gap-3 flex-1">
+                        <div className="mt-1">
+                          {getStatusIcon(invoice.status)}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <p className="font-semibold text-base">
+                              {getInvoiceTypeDisplayName(invoice.type)}
+                            </p>
+                            <Badge variant={getStatusBadgeVariant(invoice.status)} className="text-xs">
+                              {getInvoiceStatusDisplayName(invoice.status)}
+                            </Badge>
+                          </div>
+                          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
+                            <div className="flex items-center gap-1">
+                              <Users className="h-3 w-3" />
+                              <span className="truncate">{getUserName(invoice.user_id, invoice)}</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Building className="h-3 w-3" />
+                              <span>{getApartmentNumber(invoice.apartment_id, invoice)}</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Calendar className="h-3 w-3" />
+                              <span>Hạn: {new Date(invoice.due_date).toLocaleDateString('vi-VN')}</span>
+                            </div>
+                          </div>
+                          {invoice.description && (
+                            <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
+                              {invoice.description}
+                            </p>
+                          )}
                         </div>
                       </div>
-                      <div className="flex items-center gap-4">
+                      <div className="flex items-center justify-between sm:justify-end sm:flex-col sm:items-end gap-2">
                         <div className="text-right">
-                          <p className="font-bold">{invoice.amount.toLocaleString()} VNĐ</p>
-                          <p className="text-sm text-muted-foreground">
-                            Hạn: {new Date(invoice.due_date).toLocaleDateString()}
-                          </p>
+                          <p className="text-xl font-bold">{invoice.amount.toLocaleString()} VNĐ</p>
                         </div>
-                        <Badge variant={getStatusBadgeVariant(invoice.status)}>
-                          {getInvoiceStatusDisplayName(invoice.status)}
-                        </Badge>
                       </div>
                     </div>
-                    
-                    {invoice.description && (
-                      <div className="mt-3 pt-3 border-t">
-                        <p className="text-sm text-muted-foreground">{invoice.description}</p>
-                      </div>
-                    )}
                   </CardContent>
                 </Card>
               ))}

@@ -120,19 +120,19 @@ npm run dev
 ### 🔴 Admin
 ```
 Email: admin@stayease.com
-Password: Admin@123
+Password: 123456
 ```
 
 ### 🟢 Resident
 ```
 Email: resident@stayease.com
-Password: Resident@123
+Password: 123456
 ```
 
 ### 🔵 Staff
 ```
 Email: staff@stayease.com
-Password: Staff@123
+Password: 123456
 ```
 
 ## 📊 Database Models
